@@ -2,6 +2,7 @@
   "name": "openroad",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -9,16 +10,22 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@ant-design/icons": "^5.0.1",
     "@next/font": "13.1.6",
     "@types/node": "18.13.0",
     "@types/react": "18.0.27",
     "@types/react-dom": "18.0.10",
+    "antd": "^5.2.0",
+    "antd-img-crop": "^4.6.0",
     "eslint": "8.33.0",
     "eslint-config-next": "13.1.6",
+    "localtunnel": "^2.0.2",
     "next": "13.1.6",
+    "next-transpile-modules": "^10.0.0",
     "react": "18.2.0",
     "react-dom": "18.2.0",
-    "typescript": "4.9.5",
-    "antd":"5.2.0"
+    "react-loader-spinner": "^5.3.4",
+    "styled-components": "^5.3.6",
+    "typescript": "4.9.5"
   }
 }

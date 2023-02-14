@@ -1,12 +1,24 @@
+.container{
+  display: flex;
+  justify-content: center;
+  max-width: 890px;
+  width: 100%;
+  margin: 80px auto 0px;
+}
 .main {
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  justify-content: flex-start;
   align-items: center;
-  padding: 6rem;
   min-height: 100vh;
+  width: 340px;
 }
-
+.form {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  align-items: center;
+}
 .description {
   display: inherit;
   justify-content: inherit;
@@ -116,7 +128,7 @@
   width: 75px;
   height: 75px;
   padding: 25px 10px;
-  margin-left: 16px;
+  margin-bottom: 25px;
   transform: translateZ(0);
   border-radius: var(--border-radius);
   overflow: hidden;
@@ -276,3 +288,12 @@
     transform: rotate(0deg);
   }
 }
+
+.tokenInput {
+  text-align: center;
+}
+
+.ant-upload-wrapper {
+  color: "white";
+}
+

@@ -96,12 +96,20 @@ body {
 }
 
 a {
-  color: inherit;
+  color: white;
   text-decoration: none;
+}
+
+.ant-upload-list-item-name {
+  color: white;
 }
 
 @media (prefers-color-scheme: dark) {
   html {
     color-scheme: dark;
   }
+}
+
+.anticon-delete > svg {
+  color: white;
 }
