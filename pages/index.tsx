@@ -1,11 +1,13 @@
 import styles from '../styles/Home.module.css'
-import React, { useEffect, useState } from 'react'
+import React, { useCallback, useState } from 'react'
 import Image from 'next/image'
-import { Button, Form, Input, InputNumber, Modal, Select, Upload, message } from 'antd';
+import { Button, Form, Input, InputNumber, Modal, Select, Upload, message, TreeSelect, TreeDataNode } from 'antd';
 import type { RcFile, UploadProps } from 'antd/es/upload';
 import type { UploadFile } from 'antd/es/upload/interface';
 const { Dragger } = Upload;
 import { InboxOutlined } from '@ant-design/icons';
+import { schoolsData } from '../data/schools';
+const { SHOW_CHILD } = TreeSelect;
 
 
 
@@ -19,11 +21,14 @@ export default function Home() {
   const [item, setItem] = useState<any>(undefined);
   const [studentCard, setStudentCard] = useState<UploadFile | null> (null);
   const [messageApi, contextHolder] = message.useMessage();
-  const heartLogo = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0Ij48cGF0aCBkPSJNMTcuODY3IDMuNDkzbDQuMTMzIDMuNDQ0djUuMTI3bC0xMCA4LjMzMy0xMC04LjMzNHYtNS4xMjZsNC4xMzMtMy40NDQgNS44NjcgMy45MTEgNS44NjctMy45MTF6bS4xMzMtMi40OTNsLTYgNC02LTQtNiA1djdsMTIgMTAgMTItMTB2LTdsLTYtNXoiLz48L3N2Zz4=";
+  const heartLogo = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0Ij48cGF0aCBkPSJNMTguNTg2IDEwLjA4MWMtMS40MzkgMC0xLjM1IDIuODAyLTIuMDI5IDQuMDcxLS4xMTQuMjExLS40MjUuMTg0LS41LS4wNDQtLjc3MS0yLjM2NC0uNDE5LTguMTA4LTIuNTEtOC4xMDgtMi4xODkgMC0xLjY0OCA3LjQzMy0yLjUgMTAuNDYyLS4wNjMuMjMtLjM4MS4yNS0uNDc0LjAyOC0uOS0yLjE2MS0uNzk5LTYuODc1LTIuNTAyLTYuODc1LTEuNzYyIDAtMS42MTIgMy45NDktMi4zMDIgNS41NC0uMDkxLjIxMy0uMzkyLjIyLS40OTMuMDEtLjUwMy0xLjA0OS0uNjY0LTMuMTY1LTIuNTY0LTMuMTY1aC0yLjIxM2MtLjI3NSAwLS40OTkuMjI0LS40OTkuNDk5cy4yMjQuNTAxLjQ5OS41MDFoMi4yMTNjMS41NzIgMCAxLjAzOCAzLjQ4NCAyLjg1NCAzLjQ4NCAxLjY4NCAwIDEuNTAyLTMuNzkgMi4yMjMtNS40Ny4wODgtLjIwOC4zODItLjIwMi40NjYuMDA2LjgwNSAyLjA0Ny43OSA2Ljk4IDIuNjQxIDYuOTggMi4wNzcgMCAxLjMzNy03Ljg1NiAyLjQ0My0xMC42MjEuMDgzLS4yMTEuMzg0LS4yMjIuNDc5LS4wMTIgMS4wMjkgMi4yNS40ODcgOC4xMjYgMi4zNDQgOC4xMjYgMS42MzkgMCAxLjczNy0yLjcwNiAyLjIzLTQuMDM4LjA4MS0uMjEyLjM3My0uMjI3LjQ3NC0uMDI3LjUxNiAxLjAwMS44NDYgMi41NzIgMi40IDIuNTcyaDIuMjM1Yy4yNzUgMCAuNDk5LS4yMjQuNDk5LS40OTkgMC0uMjc2LS4yMjQtLjUtLjQ5OS0uNWgtMi4yMzVjLTEuMzIzIDAtMS4xMTctMi45Mi0yLjY4LTIuOTJ6Ii8+PC9zdmc+";
   const backLogo = "data:image/svg+xml;base64,PHN2ZyBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGZpbGwtcnVsZT0iZXZlbm9kZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLW1pdGVybGltaXQ9IjIiIHZpZXdCb3g9IjAgMCAyNCAyNCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJtMTAuOTc4IDE0Ljk5OXYzLjI1MWMwIC40MTItLjMzNS43NS0uNzUyLjc1LS4xODggMC0uMzc1LS4wNzEtLjUxOC0uMjA2LTEuNzc1LTEuNjg1LTQuOTQ1LTQuNjkyLTYuMzk2LTYuMDY5LS4yLS4xODktLjMxMi0uNDUyLS4zMTItLjcyNSAwLS4yNzQuMTEyLS41MzYuMzEyLS43MjUgMS40NTEtMS4zNzcgNC42MjEtNC4zODUgNi4zOTYtNi4wNjguMTQzLS4xMzYuMzMtLjIwNy41MTgtLjIwNy40MTcgMCAuNzUyLjMzNy43NTIuNzV2My4yNTFoOS4wMmMuNTMxIDAgMS4wMDIuNDcgMS4wMDIgMXYzLjk5OGMwIC41My0uNDcxIDEtMS4wMDIgMXptLTEuNS03LjUwNi00Ljc1MSA0LjUwNyA0Ljc1MSA0LjUwN3YtMy4wMDhoMTAuMDIydi0yLjk5OGgtMTAuMDIyeiIgZmlsbC1ydWxlPSJub256ZXJvIi8+PC9zdmc+"
   const loadingLogo = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0Ij48cGF0aCBkPSJNMTMuNzUgMjJjMCAuOTY2LS43ODMgMS43NS0xLjc1IDEuNzVzLTEuNzUtLjc4NC0xLjc1LTEuNzUuNzgzLTEuNzUgMS43NS0xLjc1IDEuNzUuNzg0IDEuNzUgMS43NXptLTEuNzUtMjJjLTEuMTA0IDAtMiAuODk2LTIgMnMuODk2IDIgMiAyIDItLjg5NiAyLTItLjg5Ni0yLTItMnptMTAgMTAuNzVjLjY4OSAwIDEuMjQ5LjU2MSAxLjI0OSAxLjI1IDAgLjY5LS41NiAxLjI1LTEuMjQ5IDEuMjUtLjY5IDAtMS4yNDktLjU1OS0xLjI0OS0xLjI1IDAtLjY4OS41NTktMS4yNSAxLjI0OS0xLjI1em0tMjIgMS4yNWMwIDEuMTA1Ljg5NiAyIDIgMnMyLS44OTUgMi0yYzAtMS4xMDQtLjg5Ni0yLTItMnMtMiAuODk2LTIgMnptMTktOGMuNTUxIDAgMSAuNDQ5IDEgMSAwIC41NTMtLjQ0OSAxLjAwMi0xIDEtLjU1MSAwLTEtLjQ0Ny0xLS45OTggMC0uNTUzLjQ0OS0xLjAwMiAxLTEuMDAyem0wIDEzLjVjLjgyOCAwIDEuNS42NzIgMS41IDEuNXMtLjY3MiAxLjUwMS0xLjUwMiAxLjVjLS44MjYgMC0xLjQ5OC0uNjcxLTEuNDk4LTEuNDk5IDAtLjgyOS42NzItMS41MDEgMS41LTEuNTAxem0tMTQtMTQuNWMxLjEwNCAwIDIgLjg5NiAyIDJzLS44OTYgMi0yLjAwMSAyYy0xLjEwMyAwLTEuOTk5LS44OTUtMS45OTktMnMuODk2LTIgMi0yem0wIDE0YzEuMTA0IDAgMiAuODk2IDIgMnMtLjg5NiAyLTIuMDAxIDJjLTEuMTAzIDAtMS45OTktLjg5NS0xLjk5OS0ycy44OTYtMiAyLTJ6Ii8+PC9zdmc+"
   const [logo, setLogo] = useState(heartLogo);
   const [loading, setLoading] = useState(false);
+  const [treeValue, setTreeValue] = useState(['0-0-0']);
+  const [school, setSchool] = useState<string>();
+
   
 
   const getBase64 = (file: RcFile): Promise<string> =>
@@ -54,14 +59,13 @@ export default function Home() {
       setLoading(true);
       setLogo(loadingLogo);
       const res = await fetch(`https://dfe2pgf5wv2spiwuwr2osicqgy0ekucs.lambda-url.ap-northeast-2.on.aws/?uid=${e.target.value}`);
-      console.log(res);
       if (res.status === 200){
         const fetchedItem = await res.json();
         console.log(fetchedItem);
         setItem(fetchedItem);
         setLogo(backLogo)
         setToken(e.target.value);
-        form.setFieldsValue({...fetchedItem, contactStyle: fetchedItem?.contactStyle ? fetchedItem?.contactStyle.split(",") : [], pet: fetchedItem?.pet ? fetchedItem?.pet.split(",") : []});
+        form.setFieldsValue({...fetchedItem, contactStyle: fetchedItem?.contactStyle ? fetchedItem?.contactStyle.split(",") : [], targetSchool: fetchedItem?.targetSchool ? fetchedItem?.targetSchool.split(",") : [], pet: fetchedItem?.pet ? fetchedItem?.pet.split(",") : []});
         setLoading(false);
       }
       else {
@@ -100,7 +104,9 @@ export default function Home() {
     setItem(undefined);
     form.resetFields();
   }
-  const onFinish = async(values: any) => {
+
+
+  const onFinish = useCallback(async(values: any) => {
     console.log("onFinish start")
     form.validateFields().then(
       async (values) => {
@@ -121,14 +127,16 @@ export default function Home() {
         }
         
         // new images upload and get the url
-        console.log(values.images.fileList);
 
-
-        const imageList = values.images.fileList;
+        var imageList = values.images.fileList;
+        if(imageList === undefined){imageList = values.images}
         var i;
         var imageUrlList = []
         for (i=0; i < imageList.length ; i++){
-          if(imageList[i].url){
+          if(typeof imageList[i] === "string"){
+            imageUrlList.push(imageList[i]);
+          }
+          else if(imageList[i].url){
             imageUrlList.push(imageList[i].url);
           } else{
             console.log("just element", imageList[i]);
@@ -141,12 +149,13 @@ export default function Home() {
             imageUrlList.push(imageResult.url.split('?')[0]);
           }
         }
+        console.log(imageUrlList);
         const res: any = await fetch(`https://gfmkuryu5i36woftia2y74zfsa0exqqg.lambda-url.ap-northeast-2.on.aws`, {
           method: 'POST',
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({...values, pet: values.pet.join(','), contactStyle: values.contactStyle.join(','), studentCard: studentCardUrl, images: imageUrlList }),
+          body: JSON.stringify({...values, targetSchool: values.targetSchool.join(','), pet: values.pet.join(','), contactStyle: values.contactStyle.join(','), studentCard: studentCardUrl, images: imageUrlList}),
         })
         // 응답 처리
         if (res.statusText == "OK") {
@@ -157,7 +166,7 @@ export default function Home() {
       }).catch(
       (errorInfo)=>{console.log(errorInfo); }
     )
-  }
+  }, []);
 
   const validateMessages = {
     required: "${name} 기입은 필수 사항입니다.",
@@ -179,7 +188,44 @@ export default function Home() {
     }
   };
 
-  useEffect(()=>{console.log(item)}, [item]);
+  const onTargetSchoolChange = (newValue: string[]) => {
+    console.log('onChange ', treeValue);
+    setTreeValue(newValue);
+  };
+  
+  const onMySchoolChange = (newValue: string, newLabel: string) => {
+    if (newValue === newLabel[0]){
+      console.log(newValue);
+      console.log(newLabel[0]);
+      setSchool(newValue);
+    }
+  };
+
+  const targetSchoolProps = {
+    treeData: schoolsData,
+    value: treeValue,
+    treeCheckable: true,
+    onChange: onTargetSchoolChange,
+    showCheckedStrategy: SHOW_CHILD,
+    placeholder: '상대의 학교 (선택한 학교만 서로 프로필이 노출됨)',
+    style: {
+      width: '100%',
+    },
+    allowClear: true
+  };
+
+  const mySchoolProps = {
+    treeData: schoolsData,
+    value: school,
+    onChange: onMySchoolChange,
+    placeholder: '내 학교',
+    style: {
+      width: '100%',
+    },
+    showSearch: true,
+    allowClear: true
+  };
+  
 
   return (
     <>
@@ -190,8 +236,8 @@ export default function Home() {
             <Image
               src={logo}
               alt="13"
-              width={40}
-              height={31}
+              width={60}
+              height={46}
               priority
               onClick={onBackward}
             />
@@ -235,17 +281,11 @@ export default function Home() {
                 </p>
               </Dragger>
             </Form.Item>
-
             <Form.Item style={{width: "90%", marginBottom: "5px", marginTop: "25px"}} name="school" rules={[{ required: true }]}>
-              <Select
-                placeholder = "학교 *"
-                style={{ width: "100%" }}
-                onChange={handleSelectChange}
-                options={[
-                  { value: '카이스트', label: '카이스트' },
-                  { value: '충남대', label: '충남대' },
-                ]}
-              />
+              <TreeSelect {...mySchoolProps} />
+            </Form.Item>
+            <Form.Item style={{width: "90%", marginBottom: "5px"}} name="targetSchool" rules={[{ required: true }]}>
+              <TreeSelect {...targetSchoolProps} />
             </Form.Item>
             <Form.Item style={{width: "90%", marginBottom: "5px"}} name="sex" rules={[{ required: true }]}>
               <Select
