@@ -143,7 +143,7 @@ export default function Home() {
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({...values, uid: router.query.uid, targetSchool: values.targetSchool.join(','), pet: values?.pet ? values.pet.join(',') : "", contactStyle: values?.contactStyle ? values.contactStyle.join(',') : "", studentCard: studentCardUrl, images: imageUrlList}),
+          body: JSON.stringify({...values, uid: router.query.uid, smoke: values?.smoke ? values.smoke : "", drink: typeof(values.drink) === "string" ? values.drink : "", relation: typeof(values.relation) === "string" ? values.relation : "", education: typeof(values.education) === "string" ? values.education : "",targetSchool: values.targetSchool.join(','), pet: values?.pet ? values.pet.join(',') : "", contactStyle: values?.contactStyle ? values.contactStyle.join(',') : "", studentCard: studentCardUrl, images: imageUrlList}),
           })
           if (res.statusText == "OK") {
             createSuccess();
@@ -158,7 +158,8 @@ export default function Home() {
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({...values, uid: router.query.uid, targetSchool: values.targetSchool.join(','), pet: values.pet.join(','), contactStyle: values.contactStyle.join(','), studentCard: studentCardUrl, images: imageUrlList}),
+          body: JSON.stringify({...values, uid: router.query.uid, smoke: values?.smoke ? values.smoke : "", drink: typeof(values.drink) === "string" ? values.drink : "", relation: typeof(values.relation) === "string" ? values.relation : "", education: typeof(values.education) === "string" ? values.education : "",targetSchool: values.targetSchool.join(','), pet: values?.pet ? values.pet.join(',') : "", contactStyle: values?.contactStyle ? values.contactStyle.join(',') : "", studentCard: studentCardUrl, images: imageUrlList}),
+          // body: JSON.stringify({...values, uid: router.query.uid, targetSchool: values.targetSchool.join(','), pet: values.pet.join(','), contactStyle: values.contactStyle.join(','), studentCard: studentCardUrl, images: imageUrlList}),
           })
           if (res.statusText == "OK") {
             updateSuccess();
@@ -258,6 +259,7 @@ export default function Home() {
         setLogo(errorLogo);
       }
     }  
+    console.log(fileList);
     onCheckProfile()
   } , [router, form])
 
@@ -293,7 +295,7 @@ export default function Home() {
                 onChange={onUpload}
                 onPreview={handlePreview}
                 > 
-                  {fileList.length < 3 && <span style={{color: "white"}}> + 프로필 사진 <br/>(최대 3개)</span>}
+                  {item?.images?.length < 3 && <span style={{color: "white"}}> + 프로필 사진 <br/>(최대 3개)</span>}
                 </Upload>
               </Form.Item>
               <Modal open={previewOpen} footer={null} onCancel={handleCancel}>
@@ -437,7 +439,7 @@ export default function Home() {
             <Form.Item style={{width: "90%", marginBottom: "40px"}} name="pr">
               <Input style = {{width: "100%"}} placeholder="한 줄 소개"/>
             </Form.Item>
-            <Button type = "primary" htmlType="submit" style = {{width: "90%", marginBottom: "100px"}} onClick={onFinish}>프로필 등록하기</Button></>
+            <Button type = "primary" htmlType="submit" style = {{width: "90%", marginBottom: "100px"}} onClick={onFinish}>{isCreate ? "프로필 생성하기" : "프로필 수정하기"}</Button></>
           : <></>}
         </Form>}
       </main>
