@@ -15,13 +15,13 @@ const { SHOW_CHILD } = TreeSelect;
 export default function Home() {
   const router = useRouter();
   const [form] = Form.useForm();
-  const [token, setToken] = useState<string>("");
+  const [token, setToken] = useState<any>("");
   const [isCreate, setIsCreate] = useState(true);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewImage, setPreviewImage] = useState('');
   const [fileList, setFileList] = useState<UploadFile[]>([]);
   const [item, setItem] = useState<any>(undefined);
-  const [studentCard, setStudentCard] = useState<UploadFile | null> (null);
+  const [studentCard, setStudentCard] = useState<any> (null);
   const [messageApi, contextHolder] = message.useMessage();
   const heartLogo = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0Ij48cGF0aCBkPSJNMTguNTg2IDEwLjA4MWMtMS40MzkgMC0xLjM1IDIuODAyLTIuMDI5IDQuMDcxLS4xMTQuMjExLS40MjUuMTg0LS41LS4wNDQtLjc3MS0yLjM2NC0uNDE5LTguMTA4LTIuNTEtOC4xMDgtMi4xODkgMC0xLjY0OCA3LjQzMy0yLjUgMTAuNDYyLS4wNjMuMjMtLjM4MS4yNS0uNDc0LjAyOC0uOS0yLjE2MS0uNzk5LTYuODc1LTIuNTAyLTYuODc1LTEuNzYyIDAtMS42MTIgMy45NDktMi4zMDIgNS41NC0uMDkxLjIxMy0uMzkyLjIyLS40OTMuMDEtLjUwMy0xLjA0OS0uNjY0LTMuMTY1LTIuNTY0LTMuMTY1aC0yLjIxM2MtLjI3NSAwLS40OTkuMjI0LS40OTkuNDk5cy4yMjQuNTAxLjQ5OS41MDFoMi4yMTNjMS41NzIgMCAxLjAzOCAzLjQ4NCAyLjg1NCAzLjQ4NCAxLjY4NCAwIDEuNTAyLTMuNzkgMi4yMjMtNS40Ny4wODgtLjIwOC4zODItLjIwMi40NjYuMDA2LjgwNSAyLjA0Ny43OSA2Ljk4IDIuNjQxIDYuOTggMi4wNzcgMCAxLjMzNy03Ljg1NiAyLjQ0My0xMC42MjEuMDgzLS4yMTEuMzg0LS4yMjIuNDc5LS4wMTIgMS4wMjkgMi4yNS40ODcgOC4xMjYgMi4zNDQgOC4xMjYgMS42MzkgMCAxLjczNy0yLjcwNiAyLjIzLTQuMDM4LjA4MS0uMjEyLjM3My0uMjI3LjQ3NC0uMDI3LjUxNiAxLjAwMS44NDYgMi41NzIgMi40IDIuNTcyaDIuMjM1Yy4yNzUgMCAuNDk5LS4yMjQuNDk5LS40OTkgMC0uMjc2LS4yMjQtLjUtLjQ5OS0uNWgtMi4yMzVjLTEuMzIzIDAtMS4xMTctMi45Mi0yLjY4LTIuOTJ6Ii8+PC9zdmc+";
   const loadingLogo = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0Ij48cGF0aCBkPSJNMTMuNzUgMjJjMCAuOTY2LS43ODMgMS43NS0xLjc1IDEuNzVzLTEuNzUtLjc4NC0xLjc1LTEuNzUuNzgzLTEuNzUgMS43NS0xLjc1IDEuNzUuNzg0IDEuNzUgMS43NXptLTEuNzUtMjJjLTEuMTA0IDAtMiAuODk2LTIgMnMuODk2IDIgMiAyIDItLjg5NiAyLTItLjg5Ni0yLTItMnptMTAgMTAuNzVjLjY4OSAwIDEuMjQ5LjU2MSAxLjI0OSAxLjI1IDAgLjY5LS41NiAxLjI1LTEuMjQ5IDEuMjUtLjY5IDAtMS4yNDktLjU1OS0xLjI0OS0xLjI1IDAtLjY4OS41NTktMS4yNSAxLjI0OS0xLjI1em0tMjIgMS4yNWMwIDEuMTA1Ljg5NiAyIDIgMnMyLS44OTUgMi0yYzAtMS4xMDQtLjg5Ni0yLTItMnMtMiAuODk2LTIgMnptMTktOGMuNTUxIDAgMSAuNDQ5IDEgMSAwIC41NTMtLjQ0OSAxLjAwMi0xIDEtLjU1MSAwLTEtLjQ0Ny0xLS45OTggMC0uNTUzLjQ0OS0xLjAwMiAxLTEuMDAyem0wIDEzLjVjLjgyOCAwIDEuNS42NzIgMS41IDEuNXMtLjY3MiAxLjUwMS0xLjUwMiAxLjVjLS44MjYgMC0xLjQ5OC0uNjcxLTEuNDk4LTEuNDk5IDAtLjgyOS42NzItMS41MDEgMS41LTEuNTAxem0tMTQtMTQuNWMxLjEwNCAwIDIgLjg5NiAyIDJzLS44OTYgMi0yLjAwMSAyYy0xLjEwMyAwLTEuOTk5LS44OTUtMS45OTktMnMuODk2LTIgMi0yem0wIDE0YzEuMTA0IDAgMiAuODk2IDIgMnMtLjg5NiAyLTIuMDAxIDJjLTEuMTAzIDAtMS45OTktLjg5NS0xLjk5OS0ycy44OTYtMiAyLTJ6Ii8+PC9zdmc+"
@@ -178,7 +178,7 @@ export default function Home() {
     required: "${name} 기입은 필수 사항입니다.",
   };
 
-  const validateImages = (imagesInput, value) => {
+  const validateImages = (imagesInput: any, value: any) => {
     if (value?.fileList && value?.fileList.length > 0 || value.length > 0) {
       return Promise.resolve();
     } else {
@@ -186,7 +186,7 @@ export default function Home() {
     }
   };
 
-  const validateStudentCard = (studentCardInput, value) => {
+  const validateStudentCard = (studentCardInput: any, value: any) => {
     if (value?.fileList && value?.fileList.length > 0 || value.length > 0) {
       return Promise.resolve();
     } else {
@@ -199,12 +199,9 @@ export default function Home() {
     setTreeValue(newValue);
   };
   
-  const onMySchoolChange = (newValue: string, newLabel: string) => {
-    if (newValue === newLabel[0]){
-      console.log(newValue);
-      console.log(newLabel[0]);
-      setSchool(newValue);
-    }
+  const onMySchoolChange = (newValue: string) => {
+    console.log(newValue);
+    setSchool(newValue);
   };
 
   const targetSchoolProps = {
@@ -237,7 +234,7 @@ export default function Home() {
   useEffect(()=> {
     const onCheckProfile = async() => {
       if(router.query.uid){
-        setToken(router.query.uid);
+        setToken(router?.query?.uid);
         setLoading(true);
         setLogo(loadingLogo);
         console.log("test")
@@ -291,7 +288,7 @@ export default function Home() {
                 accept="image/*"
                 style={{width: "100%"}}
                 listType="picture-card"
-                defaultFileList={item?.images ? item.images.map((url, index) => {return {uid: index+1, url: url, name: "name"}}) : []}
+                defaultFileList={item?.images ? item.images.map((url: any, index: any) => {return {uid: index+1, url: url, name: "name"}}) : []}
                 onChange={onUpload}
                 onPreview={handlePreview}
                 > 
