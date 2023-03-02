@@ -1,29 +1,36 @@
 import styles from '../styles/Home.module.css'
-import React, { useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import Image from 'next/image'
-import { Button, Form, Input, InputNumber, Modal, Select, Upload, message } from 'antd';
+import { Button, Form, Input, InputNumber, Modal, Select, Upload, message, TreeSelect } from 'antd';
 import type { RcFile, UploadProps } from 'antd/es/upload';
 import type { UploadFile } from 'antd/es/upload/interface';
 const { Dragger } = Upload;
 import { InboxOutlined } from '@ant-design/icons';
+import { schoolsData } from '../data/schools';
+import { useRouter } from 'next/router';
+const { SHOW_CHILD } = TreeSelect;
 
 
 
 export default function Home() {
+  const router = useRouter();
   const [form] = Form.useForm();
   const [token, setToken] = useState<string>("");
-  const [status, setStatus] = useState<"" | "warning" | "error">("");
+  const [isCreate, setIsCreate] = useState(true);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewImage, setPreviewImage] = useState('');
   const [fileList, setFileList] = useState<UploadFile[]>([]);
   const [item, setItem] = useState<any>(undefined);
   const [studentCard, setStudentCard] = useState<UploadFile | null> (null);
   const [messageApi, contextHolder] = message.useMessage();
-  const heartLogo = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0Ij48cGF0aCBkPSJNMTcuODY3IDMuNDkzbDQuMTMzIDMuNDQ0djUuMTI3bC0xMCA4LjMzMy0xMC04LjMzNHYtNS4xMjZsNC4xMzMtMy40NDQgNS44NjcgMy45MTEgNS44NjctMy45MTF6bS4xMzMtMi40OTNsLTYgNC02LTQtNiA1djdsMTIgMTAgMTItMTB2LTdsLTYtNXoiLz48L3N2Zz4=";
-  const backLogo = "data:image/svg+xml;base64,PHN2ZyBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGZpbGwtcnVsZT0iZXZlbm9kZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLW1pdGVybGltaXQ9IjIiIHZpZXdCb3g9IjAgMCAyNCAyNCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJtMTAuOTc4IDE0Ljk5OXYzLjI1MWMwIC40MTItLjMzNS43NS0uNzUyLjc1LS4xODggMC0uMzc1LS4wNzEtLjUxOC0uMjA2LTEuNzc1LTEuNjg1LTQuOTQ1LTQuNjkyLTYuMzk2LTYuMDY5LS4yLS4xODktLjMxMi0uNDUyLS4zMTItLjcyNSAwLS4yNzQuMTEyLS41MzYuMzEyLS43MjUgMS40NTEtMS4zNzcgNC42MjEtNC4zODUgNi4zOTYtNi4wNjguMTQzLS4xMzYuMzMtLjIwNy41MTgtLjIwNy40MTcgMCAuNzUyLjMzNy43NTIuNzV2My4yNTFoOS4wMmMuNTMxIDAgMS4wMDIuNDcgMS4wMDIgMXYzLjk5OGMwIC41My0uNDcxIDEtMS4wMDIgMXptLTEuNS03LjUwNi00Ljc1MSA0LjUwNyA0Ljc1MSA0LjUwN3YtMy4wMDhoMTAuMDIydi0yLjk5OGgtMTAuMDIyeiIgZmlsbC1ydWxlPSJub256ZXJvIi8+PC9zdmc+"
+  const heartLogo = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0Ij48cGF0aCBkPSJNMTguNTg2IDEwLjA4MWMtMS40MzkgMC0xLjM1IDIuODAyLTIuMDI5IDQuMDcxLS4xMTQuMjExLS40MjUuMTg0LS41LS4wNDQtLjc3MS0yLjM2NC0uNDE5LTguMTA4LTIuNTEtOC4xMDgtMi4xODkgMC0xLjY0OCA3LjQzMy0yLjUgMTAuNDYyLS4wNjMuMjMtLjM4MS4yNS0uNDc0LjAyOC0uOS0yLjE2MS0uNzk5LTYuODc1LTIuNTAyLTYuODc1LTEuNzYyIDAtMS42MTIgMy45NDktMi4zMDIgNS41NC0uMDkxLjIxMy0uMzkyLjIyLS40OTMuMDEtLjUwMy0xLjA0OS0uNjY0LTMuMTY1LTIuNTY0LTMuMTY1aC0yLjIxM2MtLjI3NSAwLS40OTkuMjI0LS40OTkuNDk5cy4yMjQuNTAxLjQ5OS41MDFoMi4yMTNjMS41NzIgMCAxLjAzOCAzLjQ4NCAyLjg1NCAzLjQ4NCAxLjY4NCAwIDEuNTAyLTMuNzkgMi4yMjMtNS40Ny4wODgtLjIwOC4zODItLjIwMi40NjYuMDA2LjgwNSAyLjA0Ny43OSA2Ljk4IDIuNjQxIDYuOTggMi4wNzcgMCAxLjMzNy03Ljg1NiAyLjQ0My0xMC42MjEuMDgzLS4yMTEuMzg0LS4yMjIuNDc5LS4wMTIgMS4wMjkgMi4yNS40ODcgOC4xMjYgMi4zNDQgOC4xMjYgMS42MzkgMCAxLjczNy0yLjcwNiAyLjIzLTQuMDM4LjA4MS0uMjEyLjM3My0uMjI3LjQ3NC0uMDI3LjUxNiAxLjAwMS44NDYgMi41NzIgMi40IDIuNTcyaDIuMjM1Yy4yNzUgMCAuNDk5LS4yMjQuNDk5LS40OTkgMC0uMjc2LS4yMjQtLjUtLjQ5OS0uNWgtMi4yMzVjLTEuMzIzIDAtMS4xMTctMi45Mi0yLjY4LTIuOTJ6Ii8+PC9zdmc+";
   const loadingLogo = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0Ij48cGF0aCBkPSJNMTMuNzUgMjJjMCAuOTY2LS43ODMgMS43NS0xLjc1IDEuNzVzLTEuNzUtLjc4NC0xLjc1LTEuNzUuNzgzLTEuNzUgMS43NS0xLjc1IDEuNzUuNzg0IDEuNzUgMS43NXptLTEuNzUtMjJjLTEuMTA0IDAtMiAuODk2LTIgMnMuODk2IDIgMiAyIDItLjg5NiAyLTItLjg5Ni0yLTItMnptMTAgMTAuNzVjLjY4OSAwIDEuMjQ5LjU2MSAxLjI0OSAxLjI1IDAgLjY5LS41NiAxLjI1LTEuMjQ5IDEuMjUtLjY5IDAtMS4yNDktLjU1OS0xLjI0OS0xLjI1IDAtLjY4OS41NTktMS4yNSAxLjI0OS0xLjI1em0tMjIgMS4yNWMwIDEuMTA1Ljg5NiAyIDIgMnMyLS44OTUgMi0yYzAtMS4xMDQtLjg5Ni0yLTItMnMtMiAuODk2LTIgMnptMTktOGMuNTUxIDAgMSAuNDQ5IDEgMSAwIC41NTMtLjQ0OSAxLjAwMi0xIDEtLjU1MSAwLTEtLjQ0Ny0xLS45OTggMC0uNTUzLjQ0OS0xLjAwMiAxLTEuMDAyem0wIDEzLjVjLjgyOCAwIDEuNS42NzIgMS41IDEuNXMtLjY3MiAxLjUwMS0xLjUwMiAxLjVjLS44MjYgMC0xLjQ5OC0uNjcxLTEuNDk4LTEuNDk5IDAtLjgyOS42NzItMS41MDEgMS41LTEuNTAxem0tMTQtMTQuNWMxLjEwNCAwIDIgLjg5NiAyIDJzLS44OTYgMi0yLjAwMSAyYy0xLjEwMyAwLTEuOTk5LS44OTUtMS45OTktMnMuODk2LTIgMi0yem0wIDE0YzEuMTA0IDAgMiAuODk2IDIgMnMtLjg5NiAyLTIuMDAxIDJjLTEuMTAzIDAtMS45OTktLjg5NS0xLjk5OS0ycy44OTYtMiAyLTJ6Ii8+PC9zdmc+"
+  const errorLogo = "data:image/svg+xml;base64,PHN2ZyBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGZpbGwtcnVsZT0iZXZlbm9kZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLW1pdGVybGltaXQ9IjIiIHZpZXdCb3g9IjAgMCAyNCAyNCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJtMTIuMDAyIDIxLjUzNGM1LjUxOCAwIDkuOTk4LTQuNDggOS45OTgtOS45OThzLTQuNDgtOS45OTctOS45OTgtOS45OTdjLTUuNTE3IDAtOS45OTcgNC40NzktOS45OTcgOS45OTdzNC40OCA5Ljk5OCA5Ljk5NyA5Ljk5OHptMC0xLjVjLTQuNjkgMC04LjQ5Ny0zLjgwOC04LjQ5Ny04LjQ5OHMzLjgwNy04LjQ5NyA4LjQ5Ny04LjQ5NyA4LjQ5OCAzLjgwNyA4LjQ5OCA4LjQ5Ny0zLjgwOCA4LjQ5OC04LjQ5OCA4LjQ5OHptMC02LjVjLS40MTQgMC0uNzUtLjMzNi0uNzUtLjc1di01LjVjMC0uNDE0LjMzNi0uNzUuNzUtLjc1cy43NS4zMzYuNzUuNzV2NS41YzAgLjQxNC0uMzM2Ljc1LS43NS43NXptLS4wMDIgM2MuNTUyIDAgMS0uNDQ4IDEtMXMtLjQ0OC0xLTEtMS0xIC40NDgtMSAxIC40NDggMSAxIDF6IiBmaWxsLXJ1bGU9Im5vbnplcm8iLz48L3N2Zz4=";
   const [logo, setLogo] = useState(heartLogo);
   const [loading, setLoading] = useState(false);
+  const [treeValue, setTreeValue] = useState(['0-0-0']);
+  const [school, setSchool] = useState<string>();
+
   
 
   const getBase64 = (file: RcFile): Promise<string> =>
@@ -33,10 +40,17 @@ export default function Home() {
     reader.onload = () => resolve(reader.result as string);
     reader.onerror = (error) => reject(error);
   });
-  const success = () => {
+  const createSuccess = () => {
     messageApi.open({
       type: 'success',
-      content: '프로필 등록이 정상적으로 접수되었습니다.',
+      content: '프로필이 만들어졌어요. 카카오 챗봇에서 운명을 찾을 시간이네요:)',
+    });
+  };
+
+  const updateSuccess = () => {
+    messageApi.open({
+      type: 'success',
+      content: '프로필 수정이 완료되었어요. 오늘도 멋진 하루 보내세요:)',
     });
   };
 
@@ -47,34 +61,12 @@ export default function Home() {
     });
   };
 
-
-  const onTokenType = async (e: any) => {
-    if(e.target.value.length === 66){
-      setStatus("");
-      setLoading(true);
-      setLogo(loadingLogo);
-      const res = await fetch(`https://dfe2pgf5wv2spiwuwr2osicqgy0ekucs.lambda-url.ap-northeast-2.on.aws/?uid=${e.target.value}`);
-      console.log(res);
-      if (res.status === 200){
-        const fetchedItem = await res.json();
-        console.log(fetchedItem);
-        setItem(fetchedItem);
-        setLogo(backLogo)
-        setToken(e.target.value);
-        form.setFieldsValue({...fetchedItem, contactStyle: fetchedItem?.contactStyle ? fetchedItem?.contactStyle.split(",") : [], pet: fetchedItem?.pet ? fetchedItem?.pet.split(",") : []});
-        setLoading(false);
-      }
-      else {
-        setItem({});
-        setToken(e.target.value);
-        setLogo(backLogo);
-        setLoading(false);
-      }
-    } else{
-      setStatus("warning");
-      setLoading(false);
-    }
-  }
+  const badAccess = () => {
+    messageApi.open({
+      type: 'error',
+      content: '잘못된 경로입니다.',
+    });
+  };
 
   const onUpload: UploadProps['onChange'] = ({ fileList: newFileList }) => {
     setFileList(newFileList);
@@ -94,25 +86,23 @@ export default function Home() {
   const handleSelectChange = (value: string) => {
     console.log(`selected ${value}`);
   };
-  const onBackward = () => {
-    setToken("");
-    setLogo(heartLogo);
-    setItem(undefined);
-    form.resetFields();
-  }
-  const onFinish = async(values: any) => {
+
+
+  const onFinish = useCallback(async(values: any) => {
     console.log("onFinish start")
     form.validateFields().then(
       async (values) => {
         console.log("validate");
         var studentCardUrl;
+        console.log(studentCard);
         // student card upload and get the url
         if (studentCard?.type) {
-          const studentCardPresigned = await(await fetch(`https://msijrjatrcvc3aorpblgxnsbtq0lxlmn.lambda-url.ap-northeast-2.on.aws/?uid=${token}&filename=studentCard&type=${studentCard.type}`)).json();
+          const studentCardPresigned = await(await fetch(`https://msijrjatrcvc3aorpblgxnsbtq0lxlmn.lambda-url.ap-northeast-2.on.aws/?uid=${router.query.uid}&filename=studentCard&type=${studentCard.type}`)).json();
           const studentCardResult = await fetch(studentCardPresigned.uploadURL, {
             method: 'PUT',
             body: studentCard
           })
+          console.log(studentCardResult.url);
           studentCardUrl = studentCardResult.url.split('?')[0];
           console.log("studentCardUrl", studentCardUrl);
         } else {
@@ -121,19 +111,21 @@ export default function Home() {
         }
         
         // new images upload and get the url
-        console.log(values.images.fileList);
 
-
-        const imageList = values.images.fileList;
+        var imageList = values.images.fileList;
+        if(imageList === undefined){imageList = values.images}
         var i;
         var imageUrlList = []
         for (i=0; i < imageList.length ; i++){
-          if(imageList[i].url){
+          if(typeof imageList[i] === "string"){
+            imageUrlList.push(imageList[i]);
+          }
+          else if(imageList[i].url){
             imageUrlList.push(imageList[i].url);
           } else{
             console.log("just element", imageList[i]);
             console.log("file", imageList[i].originFileObj);
-            var imagePresigned = await(await fetch(`https://msijrjatrcvc3aorpblgxnsbtq0lxlmn.lambda-url.ap-northeast-2.on.aws/?uid=${token}&filename=${i}&type=${studentCard.type}`)).json();
+            var imagePresigned = await(await fetch(`https://msijrjatrcvc3aorpblgxnsbtq0lxlmn.lambda-url.ap-northeast-2.on.aws/?uid=${router.query.uid}&filename=${i}&type=${studentCard.type}`)).json();
             var imageResult = await fetch(imagePresigned.uploadURL, {
               method: 'PUT',
               body: imageList[i].originFileObj
@@ -141,23 +133,46 @@ export default function Home() {
             imageUrlList.push(imageResult.url.split('?')[0]);
           }
         }
-        const res: any = await fetch(`https://gfmkuryu5i36woftia2y74zfsa0exqqg.lambda-url.ap-northeast-2.on.aws`, {
+        console.log(imageUrlList);
+        var res;
+        if (isCreate){
+          console.log("creating")
+          console.log(values);
+          res = await fetch(`https://gfmkuryu5i36woftia2y74zfsa0exqqg.lambda-url.ap-northeast-2.on.aws`, {
           method: 'POST',
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({...values, pet: values.pet.join(','), contactStyle: values.contactStyle.join(','), studentCard: studentCardUrl, images: imageUrlList }),
-        })
-        // 응답 처리
-        if (res.statusText == "OK") {
-          success();
-        } else {
-          error();
+          body: JSON.stringify({...values, uid: router.query.uid, smoke: values?.smoke ? values.smoke : "", drink: typeof(values.drink) === "string" ? values.drink : "", relation: typeof(values.relation) === "string" ? values.relation : "", education: typeof(values.education) === "string" ? values.education : "",targetSchool: values.targetSchool.join(','), pet: values?.pet ? values.pet.join(',') : "", contactStyle: values?.contactStyle ? values.contactStyle.join(',') : "", studentCard: studentCardUrl, images: imageUrlList}),
+          })
+          if (res.statusText == "OK") {
+            createSuccess();
+          } else {
+            error();
+          }
+          setIsCreate(false);
+        } else{
+          console.log("updating")
+          res = await fetch(`https://gfmkuryu5i36woftia2y74zfsa0exqqg.lambda-url.ap-northeast-2.on.aws`, {
+          method: 'PUT',
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({...values, uid: router.query.uid, smoke: values?.smoke ? values.smoke : "", drink: typeof(values.drink) === "string" ? values.drink : "", relation: typeof(values.relation) === "string" ? values.relation : "", education: typeof(values.education) === "string" ? values.education : "",targetSchool: values.targetSchool.join(','), pet: values?.pet ? values.pet.join(',') : "", contactStyle: values?.contactStyle ? values.contactStyle.join(',') : "", studentCard: studentCardUrl, images: imageUrlList}),
+          // body: JSON.stringify({...values, uid: router.query.uid, targetSchool: values.targetSchool.join(','), pet: values.pet.join(','), contactStyle: values.contactStyle.join(','), studentCard: studentCardUrl, images: imageUrlList}),
+          })
+          if (res.statusText == "OK") {
+            updateSuccess();
+          } else {
+            error();
+          }
         }
+        // 응답 처리
+       
       }).catch(
       (errorInfo)=>{console.log(errorInfo); }
     )
-  }
+  }, [router, form, studentCard, isCreate]);
 
   const validateMessages = {
     required: "${name} 기입은 필수 사항입니다.",
@@ -179,7 +194,74 @@ export default function Home() {
     }
   };
 
-  useEffect(()=>{console.log(item)}, [item]);
+  const onTargetSchoolChange = (newValue: string[]) => {
+    console.log('onChange ', treeValue);
+    setTreeValue(newValue);
+  };
+  
+  const onMySchoolChange = (newValue: string, newLabel: string) => {
+    if (newValue === newLabel[0]){
+      console.log(newValue);
+      console.log(newLabel[0]);
+      setSchool(newValue);
+    }
+  };
+
+  const targetSchoolProps = {
+    treeData: schoolsData,
+    value: treeValue,
+    treeCheckable: true,
+    onChange: onTargetSchoolChange,
+    showCheckedStrategy: SHOW_CHILD,
+    placeholder: '상대의 학교 (선택한 학교만 서로 프로필이 노출됨)',
+    style: {
+      width: '100%',
+    },
+    allowClear: true
+  };
+
+  const mySchoolProps = {
+    treeData: schoolsData,
+    value: school,
+    onChange: onMySchoolChange,
+    placeholder: '내 학교',
+    style: {
+      width: '100%',
+    },
+    showSearch: true,
+    allowClear: true
+  };
+  
+
+
+  useEffect(()=> {
+    const onCheckProfile = async() => {
+      if(router.query.uid){
+        setToken(router.query.uid);
+        setLoading(true);
+        setLogo(loadingLogo);
+        console.log("test")
+        const res = await fetch(`https://dfe2pgf5wv2spiwuwr2osicqgy0ekucs.lambda-url.ap-northeast-2.on.aws/?uid=${router.query.uid}`);
+        if (res.status === 200){
+          const fetchedItem = await res.json();
+          setIsCreate(false);
+          setItem(fetchedItem);
+          form.setFieldsValue({...fetchedItem, contactStyle: fetchedItem?.contactStyle ? fetchedItem?.contactStyle.split(",") : [], drink: fetchedItem?.drink ? fetchedItem?.drink : [], relation: fetchedItem?.relation ? fetchedItem?.relation : [], smoke: fetchedItem?.smoke ? fetchedItem?.smoke : [],  education: fetchedItem?.education ? fetchedItem?.education : [], targetSchool: fetchedItem?.targetSchool ? fetchedItem?.targetSchool.split(",") : [], pet: fetchedItem?.pet ? fetchedItem?.pet.split(",") : []});
+        }
+        else {
+          setIsCreate(true);
+          setItem({});
+        }
+        setLogo(heartLogo)
+        setLoading(false);
+      }
+      else {
+        setLogo(errorLogo);
+      }
+    }  
+    console.log(fileList);
+    onCheckProfile()
+  } , [router, form])
 
   return (
     <>
@@ -190,15 +272,14 @@ export default function Home() {
             <Image
               src={logo}
               alt="13"
-              width={40}
-              height={31}
+              width={60}
+              height={46}
               priority
-              onClick={onBackward}
             />
-          </div>
+        </div>
+        {logo === errorLogo && <p>잘못된 경로입니다.</p>}
       {!loading &&
         <Form className={styles.form} form={form} validateMessages={validateMessages}>
-        <Form.Item style={{width: "90%", marginBottom: "5px", display: item === undefined ? "auto" : "none"}} name="uid"><Input style = {{width: "100%", textAlign: "center"}} status={status} onChange={e => onTokenType(e)} placeholder="시작을 위해 토큰을 붙여넣으세요 *"/></Form.Item>
           {token !== "" ? 
           <>
             <div style={{marginTop: "15px", marginLeft: "8px"}}>
@@ -214,7 +295,7 @@ export default function Home() {
                 onChange={onUpload}
                 onPreview={handlePreview}
                 > 
-                  {fileList.length < 3 && <span style={{color: "white"}}> + 프로필 사진 <br/>(최대 3개)</span>}
+                  {item?.images?.length < 3 && <span style={{color: "white"}}> + 프로필 사진 <br/>(최대 3개)</span>}
                 </Upload>
               </Form.Item>
               <Modal open={previewOpen} footer={null} onCancel={handleCancel}>
@@ -235,17 +316,11 @@ export default function Home() {
                 </p>
               </Dragger>
             </Form.Item>
-
             <Form.Item style={{width: "90%", marginBottom: "5px", marginTop: "25px"}} name="school" rules={[{ required: true }]}>
-              <Select
-                placeholder = "학교 *"
-                style={{ width: "100%" }}
-                onChange={handleSelectChange}
-                options={[
-                  { value: '카이스트', label: '카이스트' },
-                  { value: '충남대', label: '충남대' },
-                ]}
-              />
+              <TreeSelect {...mySchoolProps} />
+            </Form.Item>
+            <Form.Item style={{width: "90%", marginBottom: "5px"}} name="targetSchool" rules={[{ required: true }]}>
+              <TreeSelect {...targetSchoolProps} />
             </Form.Item>
             <Form.Item style={{width: "90%", marginBottom: "5px"}} name="sex" rules={[{ required: true }]}>
               <Select
@@ -364,7 +439,7 @@ export default function Home() {
             <Form.Item style={{width: "90%", marginBottom: "40px"}} name="pr">
               <Input style = {{width: "100%"}} placeholder="한 줄 소개"/>
             </Form.Item>
-            <Button type = "primary" htmlType="submit" style = {{width: "90%", marginBottom: "100px"}} onClick={onFinish}>프로필 등록하기</Button></>
+            <Button type = "primary" htmlType="submit" style = {{width: "90%", marginBottom: "100px"}} onClick={onFinish}>{isCreate ? "프로필 생성하기" : "프로필 수정하기"}</Button></>
           : <></>}
         </Form>}
       </main>
