@@ -97,7 +97,7 @@ export default function Home() {
         console.log(studentCard);
         // student card upload and get the url
         if (studentCard?.type) {
-          const studentCardPresigned = await(await fetch(`https://msijrjatrcvc3aorpblgxnsbtq0lxlmn.lambda-url.ap-northeast-2.on.aws/?uid=${router.query.uid}&filename=studentCard&type=${studentCard.type}`)).json();
+          const studentCardPresigned = await(await fetch(`https://${process.env.NEXT_PUBLIC_PRESIGNED_API}.lambda-url.ap-northeast-2.on.aws/?uid=${router.query.uid}&filename=studentCard&type=${studentCard.type}`)).json();
           const studentCardResult = await fetch(studentCardPresigned.uploadURL, {
             method: 'PUT',
             body: studentCard
@@ -125,7 +125,7 @@ export default function Home() {
           } else{
             console.log("just element", imageList[i]);
             console.log("file", imageList[i].originFileObj);
-            var imagePresigned = await(await fetch(`https://msijrjatrcvc3aorpblgxnsbtq0lxlmn.lambda-url.ap-northeast-2.on.aws/?uid=${router.query.uid}&filename=${i}&type=${studentCard.type}`)).json();
+            var imagePresigned = await(await fetch(`https://${process.env.NEXT_PUBLIC_PRESIGNED_API}.lambda-url.ap-northeast-2.on.aws/?uid=${router.query.uid}&filename=${i}&type=${studentCard.type}`)).json();
             var imageResult = await fetch(imagePresigned.uploadURL, {
               method: 'PUT',
               body: imageList[i].originFileObj
@@ -138,7 +138,7 @@ export default function Home() {
         if (isCreate){
           console.log("creating")
           console.log(values);
-          res = await fetch(`https://gfmkuryu5i36woftia2y74zfsa0exqqg.lambda-url.ap-northeast-2.on.aws`, {
+          res = await fetch(`https://${process.env.NEXT_PUBLIC_PROFILE_CREATE_UPDATE_API}.lambda-url.ap-northeast-2.on.aws`, {
           method: 'POST',
           headers: {
             "Content-Type": "application/json",
@@ -153,7 +153,7 @@ export default function Home() {
           setIsCreate(false);
         } else{
           console.log("updating")
-          res = await fetch(`https://gfmkuryu5i36woftia2y74zfsa0exqqg.lambda-url.ap-northeast-2.on.aws`, {
+          res = await fetch(`https://${process.env.NEXT_PUBLIC_PROFILE_CREATE_UPDATE_API}.lambda-url.ap-northeast-2.on.aws`, {
           method: 'PUT',
           headers: {
             "Content-Type": "application/json",
@@ -238,7 +238,7 @@ export default function Home() {
         setLoading(true);
         setLogo(loadingLogo);
         console.log("test")
-        const res = await fetch(`https://dfe2pgf5wv2spiwuwr2osicqgy0ekucs.lambda-url.ap-northeast-2.on.aws/?uid=${router.query.uid}`);
+        const res = await fetch(`https://${process.env.NEXT_PUBLIC_PROFILE_READ_API}.lambda-url.ap-northeast-2.on.aws/?uid=${router.query.uid}`);
         if (res.status === 200){
           const fetchedItem = await res.json();
           setIsCreate(false);
