@@ -244,7 +244,7 @@ export default function Home() {
           setIsCreate(false);
           setItem(fetchedItem);
           form.setFieldsValue({...fetchedItem, contactStyle: fetchedItem?.contactStyle ? fetchedItem?.contactStyle.split(",") : [], drink: fetchedItem?.drink ? fetchedItem?.drink : [], relation: fetchedItem?.relation ? fetchedItem?.relation : [], smoke: fetchedItem?.smoke ? fetchedItem?.smoke : [],  education: fetchedItem?.education ? fetchedItem?.education : [], targetSchool: fetchedItem?.targetSchool ? fetchedItem?.targetSchool.split(",") : [], pet: fetchedItem?.pet ? fetchedItem?.pet.split(",") : []});
-          setFileList(fetchedItem.images);
+          setFileList(fetchedItem.images.map((url: any, index: any) => {return {uid: index+1, url: url, name: "name"}}));
         }
         else {
           setIsCreate(true);
@@ -257,11 +257,12 @@ export default function Home() {
         setLogo(errorLogo);
       }
     }  
-    console.log(fileList);
-    console.log(item);
     onCheckProfile()
+    console.log("item", item);
+    console.log("fileList", fileList);
   } , [router, form])
 
+  useEffect(()=>{console.log("fileList changed", fileList)}, [fileList])
   return (
     <>
       {contextHolder}
@@ -290,7 +291,7 @@ export default function Home() {
                 accept="image/*"
                 style={{width: "100%"}}
                 listType="picture-card"
-                defaultFileList={item?.images ? item.images.map((url: any, index: any) => {return {uid: index+1, url: url, name: "name"}}) : []}
+                defaultFileList={item?.images ? fileList : []}
                 onChange={onUpload}
                 onPreview={handlePreview}
                 > 
