@@ -244,6 +244,7 @@ export default function Home() {
           setIsCreate(false);
           setItem(fetchedItem);
           form.setFieldsValue({...fetchedItem, contactStyle: fetchedItem?.contactStyle ? fetchedItem?.contactStyle.split(",") : [], drink: fetchedItem?.drink ? fetchedItem?.drink : [], relation: fetchedItem?.relation ? fetchedItem?.relation : [], smoke: fetchedItem?.smoke ? fetchedItem?.smoke : [],  education: fetchedItem?.education ? fetchedItem?.education : [], targetSchool: fetchedItem?.targetSchool ? fetchedItem?.targetSchool.split(",") : [], pet: fetchedItem?.pet ? fetchedItem?.pet.split(",") : []});
+          setFileList(fetchedItem.images);
         }
         else {
           setIsCreate(true);
@@ -257,6 +258,7 @@ export default function Home() {
       }
     }  
     console.log(fileList);
+    console.log(item);
     onCheckProfile()
   } , [router, form])
 
@@ -292,7 +294,7 @@ export default function Home() {
                 onChange={onUpload}
                 onPreview={handlePreview}
                 > 
-                  {item?.images?.length < 3 && <span style={{color: "white"}}> + 프로필 사진 <br/>(최대 3개)</span>}
+                  {(fileList.length < 3) && <span style={{color: "white"}}> + 프로필 사진 <br/>(최대 3개)</span>}
                 </Upload>
               </Form.Item>
               <Modal open={previewOpen} footer={null} onCancel={handleCancel}>
