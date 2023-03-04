@@ -76,15 +76,9 @@ export default function Home() {
     });
   };
 
-  const badAccess = () => {
-    messageApi.open({
-      type: 'error',
-      content: '잘못된 경로입니다.',
-    });
-  };
 
   const onUpload: UploadProps['onChange'] = ({ fileList: newFileList }) => {
-    if(newFileList.length <= 9) {setFileList(newFileList);}
+    setFileList(newFileList);
   };
 
 
@@ -310,7 +304,7 @@ export default function Home() {
                 onChange={onUpload}
                 onPreview={handlePreview}
                 > 
-                  {(fileList.length <= 9) && <span style={{color: "white"}}> + 프로필 사진 <br/>(최대 9개)</span>}
+                  {(fileList.length <= 8) && <span style={{color: "white"}}> + 프로필 사진 <br/>(최대 9개)</span>}
                 </Upload>
               </Form.Item>
               <Modal open={previewOpen} footer={null} onCancel={handleCancel}>
