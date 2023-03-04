@@ -789,8 +789,8 @@ const kyeongbukChildren = [
        
     },
     {
-        "title": "포항공과대학교",
-        "value": "포항공과대학교",
+        "title": "포항공과대학교(POSTECH, 포스텍)",
+        "value": "포항공과대학교(POSTECH, 포스텍)",
        
     },
     {
@@ -832,8 +832,8 @@ const gwangjuChildren = [
       
     },
     {
-        "title": "광주과학기술원",
-        "value": "광주과학기술원",
+        "title": "광주과학기술원(GIST, 지스트)",
+        "value": "광주과학기술원(GIST, 지스트)",
       
     },
     {
@@ -935,8 +935,8 @@ const daeguChildren = [
       
     },
     {
-        "title": "대구경북과학기술원",
-        "value": "대구경북과학기술원",
+        "title": "대구경북과학기술원(DGIST, 디지스트)",
+        "value": "대구경북과학기술원(DGIST, 디지스트)",
       
     },
     {
@@ -1053,8 +1053,8 @@ const daejeonChildren = [
        
     },
     {
-        "title": "한국과학기술원",
-        "value": "한국과학기술원",
+        "title": "한국과학기술원(KAIST, 카이스트)",
+        "value": "한국과학기술원(KAIST, 카이스트)",
        
     },
     {
@@ -1530,8 +1530,8 @@ const sejongChildren = [
 
 const ulsanChildren = [
     {
-        "title": "울산과학기술원",
-        "value": "울산과학기술원",
+        "title": "울산과학기술원(UNIST, 유니스트)",
+        "value": "울산과학기술원(UNIST, 유니스트)",
        
     },
     {

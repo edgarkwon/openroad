@@ -69,6 +69,13 @@ export default function Home() {
     });
   };
 
+  const imagesError = () => {
+    messageApi.open({
+      type: 'error',
+      content: '이미지는 9개까지만 선택할 수 있어요.',
+    });
+  };
+
   const badAccess = () => {
     messageApi.open({
       type: 'error',
@@ -77,7 +84,7 @@ export default function Home() {
   };
 
   const onUpload: UploadProps['onChange'] = ({ fileList: newFileList }) => {
-    setFileList(newFileList);
+    if(newFileList.length <= 9) {setFileList(newFileList);}
   };
 
 
@@ -101,6 +108,9 @@ export default function Home() {
     setUpdating(true);
     form.validateFields().then(
       async (values) => {
+        var imageList = values.images.fileList;
+        if(imageList === undefined){imageList = values.images}
+
         var studentCardUrl;
         console.log("studentCard", studentCard);
         // student card upload and get the url
@@ -117,11 +127,6 @@ export default function Home() {
           studentCardUrl = values.studentCard;
           console.log("이미 있던거 쓴다", studentCardUrl);
         }
-        
-        // new images upload and get the url
-
-        var imageList = values.images.fileList;
-        if(imageList === undefined){imageList = values.images}
         var i;
         var imageUrlList = []
         for (i=0; i < imageList.length ; i++){
@@ -143,7 +148,10 @@ export default function Home() {
         }
         console.log(imageUrlList);
         var res;
-        if (isCreate){
+        if (imageList.length >= 10){
+          imagesError();
+        }
+        else if (isCreate){
           console.log("creating")
           console.log(values);
           res = await fetch(`https://${process.env.NEXT_PUBLIC_PROFILE_CREATE_UPDATE_API}.lambda-url.ap-northeast-2.on.aws`, {
@@ -284,7 +292,7 @@ export default function Home() {
               priority
             />
         </div>
-        {logo === errorLogo && <p>v2 잘못된 경로입니다.</p>}
+        {logo === errorLogo && <p>잘못된 경로입니다.</p>}
       {!loading &&
         <Form className={styles.form} form={form} validateMessages={validateMessages}>
           {token !== "" ? 
@@ -301,9 +309,8 @@ export default function Home() {
                 defaultFileList={item?.images ? fileList : []}
                 onChange={onUpload}
                 onPreview={handlePreview}
-                beforeUpload={()=> (fileList.length <= 3)}
                 > 
-                  {(fileList.length < 3) && <span style={{color: "white"}}> + 프로필 사진 <br/>(최대 3개)</span>}
+                  {(fileList.length <= 9) && <span style={{color: "white"}}> + 프로필 사진 <br/>(최대 9개)</span>}
                 </Upload>
               </Form.Item>
               <Modal open={previewOpen} footer={null} onCancel={handleCancel}>
