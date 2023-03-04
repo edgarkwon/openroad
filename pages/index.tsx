@@ -28,6 +28,7 @@ export default function Home() {
   const errorLogo = "data:image/svg+xml;base64,PHN2ZyBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGZpbGwtcnVsZT0iZXZlbm9kZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLW1pdGVybGltaXQ9IjIiIHZpZXdCb3g9IjAgMCAyNCAyNCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJtMTIuMDAyIDIxLjUzNGM1LjUxOCAwIDkuOTk4LTQuNDggOS45OTgtOS45OThzLTQuNDgtOS45OTctOS45OTgtOS45OTdjLTUuNTE3IDAtOS45OTcgNC40NzktOS45OTcgOS45OTdzNC40OCA5Ljk5OCA5Ljk5NyA5Ljk5OHptMC0xLjVjLTQuNjkgMC04LjQ5Ny0zLjgwOC04LjQ5Ny04LjQ5OHMzLjgwNy04LjQ5NyA4LjQ5Ny04LjQ5NyA4LjQ5OCAzLjgwNyA4LjQ5OCA4LjQ5Ny0zLjgwOCA4LjQ5OC04LjQ5OCA4LjQ5OHptMC02LjVjLS40MTQgMC0uNzUtLjMzNi0uNzUtLjc1di01LjVjMC0uNDE0LjMzNi0uNzUuNzUtLjc1cy43NS4zMzYuNzUuNzV2NS41YzAgLjQxNC0uMzM2Ljc1LS43NS43NXptLS4wMDIgM2MuNTUyIDAgMS0uNDQ4IDEtMXMtLjQ0OC0xLTEtMS0xIC40NDgtMSAxIC40NDggMSAxIDF6IiBmaWxsLXJ1bGU9Im5vbnplcm8iLz48L3N2Zz4=";
   const [logo, setLogo] = useState(heartLogo);
   const [loading, setLoading] = useState(false);
+  const [updating, setUpdating] = useState(false);
   const [treeValue, setTreeValue] = useState(['0-0-0']);
   const [school, setSchool] = useState<string>();
 
@@ -61,6 +62,13 @@ export default function Home() {
     });
   };
 
+  const formError = () => {
+    messageApi.open({
+      type: 'error',
+      content: '필수 기재 항목이 다 채워졌는지 확인해주세요.',
+    });
+  };
+
   const badAccess = () => {
     messageApi.open({
       type: 'error',
@@ -69,6 +77,7 @@ export default function Home() {
   };
 
   const onUpload: UploadProps['onChange'] = ({ fileList: newFileList }) => {
+    console
     setFileList(newFileList);
   };
 
@@ -90,13 +99,13 @@ export default function Home() {
 
   const onFinish = useCallback(async(values: any) => {
     console.log("onFinish start")
+    setUpdating(true);
     form.validateFields().then(
       async (values) => {
-        console.log("validate");
         var studentCardUrl;
-        console.log(studentCard);
+        console.log("studentCard", studentCard);
         // student card upload and get the url
-        if (studentCard?.type) {
+        if (studentCard !== null && studentCard !== undefined ) {
           const studentCardPresigned = await(await fetch(`https://${process.env.NEXT_PUBLIC_PRESIGNED_API}.lambda-url.ap-northeast-2.on.aws/?uid=${router.query.uid}&filename=studentCard&type=${studentCard.type}`)).json();
           const studentCardResult = await fetch(studentCardPresigned.uploadURL, {
             method: 'PUT',
@@ -125,7 +134,7 @@ export default function Home() {
           } else{
             console.log("just element", imageList[i]);
             console.log("file", imageList[i].originFileObj);
-            var imagePresigned = await(await fetch(`https://${process.env.NEXT_PUBLIC_PRESIGNED_API}.lambda-url.ap-northeast-2.on.aws/?uid=${router.query.uid}&filename=${i}&type=${studentCard.type}`)).json();
+            var imagePresigned = await(await fetch(`https://${process.env.NEXT_PUBLIC_PRESIGNED_API}.lambda-url.ap-northeast-2.on.aws/?uid=${router.query.uid}&filename=${i}&type=jpg`)).json();
             var imageResult = await fetch(imagePresigned.uploadURL, {
               method: 'PUT',
               body: imageList[i].originFileObj
@@ -143,7 +152,7 @@ export default function Home() {
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({...values, uid: router.query.uid, smoke: values?.smoke ? values.smoke : "", drink: typeof(values.drink) === "string" ? values.drink : "", relation: typeof(values.relation) === "string" ? values.relation : "", education: typeof(values.education) === "string" ? values.education : "",targetSchool: values.targetSchool.join(','), pet: values?.pet ? values.pet.join(',') : "", contactStyle: values?.contactStyle ? values.contactStyle.join(',') : "", studentCard: studentCardUrl, images: imageUrlList}),
+          body: JSON.stringify({...values, uid: router.query.uid, smoke: typeof(values.smoke) === "string" ? values.smoke : "", drink: typeof(values.drink) === "string" ? values.drink : "", relation: typeof(values.relation) === "string" ? values.relation : "", education: typeof(values.education) === "string" ? values.education : "",targetSchool: values.targetSchool.join(','), pet: values?.pet ? values.pet.join(',') : "", contactStyle: values?.contactStyle ? values.contactStyle.join(',') : "", studentCard: studentCardUrl, images: imageUrlList}),
           })
           if (res.statusText == "OK") {
             createSuccess();
@@ -158,7 +167,7 @@ export default function Home() {
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({...values, uid: router.query.uid, smoke: values?.smoke ? values.smoke : "", drink: typeof(values.drink) === "string" ? values.drink : "", relation: typeof(values.relation) === "string" ? values.relation : "", education: typeof(values.education) === "string" ? values.education : "",targetSchool: values.targetSchool.join(','), pet: values?.pet ? values.pet.join(',') : "", contactStyle: values?.contactStyle ? values.contactStyle.join(',') : "", studentCard: studentCardUrl, images: imageUrlList}),
+          body: JSON.stringify({...values, uid: router.query.uid, smoke: typeof(values.smoke) === "string" ? values.smoke : "", drink: typeof(values.drink) === "string" ? values.drink : "", relation: typeof(values.relation) === "string" ? values.relation : "", education: typeof(values.education) === "string" ? values.education : "",targetSchool: values.targetSchool.join(','), pet: values?.pet ? values.pet.join(',') : "", contactStyle: values?.contactStyle ? values.contactStyle.join(',') : "", studentCard: studentCardUrl, images: imageUrlList}),
           // body: JSON.stringify({...values, uid: router.query.uid, targetSchool: values.targetSchool.join(','), pet: values.pet.join(','), contactStyle: values.contactStyle.join(','), studentCard: studentCardUrl, images: imageUrlList}),
           })
           if (res.statusText == "OK") {
@@ -166,11 +175,12 @@ export default function Home() {
           } else {
             error();
           }
+          setUpdating(false);
         }
         // 응답 처리
        
       }).catch(
-      (errorInfo)=>{console.log(errorInfo); }
+      (errorInfo)=>{console.log("errorInfo",errorInfo); formError(); setUpdating(false); }
     )
   }, [router, form, studentCard, isCreate]);
 
@@ -294,6 +304,7 @@ export default function Home() {
                 defaultFileList={item?.images ? fileList : []}
                 onChange={onUpload}
                 onPreview={handlePreview}
+                method="PUT"
                 > 
                   {(fileList.length < 3) && <span style={{color: "white"}}> + 프로필 사진 <br/>(최대 3개)</span>}
                 </Upload>
@@ -306,7 +317,7 @@ export default function Home() {
                 validator: validateStudentCard,
                 message: "학생증 사진을 등록해주세요.",
               }]}>
-              <Dragger listType='picture' accept="image/*" maxCount={1} defaultFileList={item?.studentCard ? [{uid: "0", name: "studentCard", url: item.studentCard}] : []} beforeUpload={(file: UploadFile) => {setStudentCard(file);}}>
+              <Dragger method="PUT" listType='picture' accept="image/*" maxCount={1} defaultFileList={item?.studentCard ? [{uid: "0", name: "studentCard", url: item.studentCard}] : []} beforeUpload={(file: UploadFile) => {setStudentCard(file);}}>
                 <p className="ant-upload-drag-icon">
                   <InboxOutlined />
                 </p>
@@ -439,7 +450,7 @@ export default function Home() {
             <Form.Item style={{width: "90%", marginBottom: "40px"}} name="pr">
               <Input style = {{width: "100%"}} placeholder="한 줄 소개"/>
             </Form.Item>
-            <Button type = "primary" htmlType="submit" style = {{width: "90%", marginBottom: "100px"}} onClick={onFinish}>{isCreate ? "프로필 생성하기" : "프로필 수정하기"}</Button></>
+            <Button type = "primary" htmlType="submit" style = {{width: "90%", marginBottom: "100px"}} onClick={onFinish}>{updating ? "로딩중..." : (isCreate ? "프로필 생성하기" : "프로필 수정하기")}</Button></>
           : <></>}
         </Form>}
       </main>
