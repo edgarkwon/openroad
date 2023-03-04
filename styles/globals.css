@@ -113,3 +113,11 @@ a {
 .anticon-delete > svg {
   color: white;
 }
+
+.ant-upload-wrapper .ant-upload-list.ant-upload-list-picture-card .ant-upload-list-item {
+  border: 1px solid white
+}
+
+.ant-upload-wrapper .ant-upload-list.ant-upload-list-picture .ant-upload-list-item{
+  border: 1px solid white
+}

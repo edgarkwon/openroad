@@ -167,13 +167,12 @@ export default function Home() {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({...values, uid: router.query.uid, smoke: typeof(values.smoke) === "string" ? values.smoke : "", drink: typeof(values.drink) === "string" ? values.drink : "", relation: typeof(values.relation) === "string" ? values.relation : "", education: typeof(values.education) === "string" ? values.education : "",targetSchool: values.targetSchool.join(','), pet: values?.pet ? values.pet.join(',') : "", contactStyle: values?.contactStyle ? values.contactStyle.join(',') : "", studentCard: studentCardUrl, images: imageUrlList}),
-          // body: JSON.stringify({...values, uid: router.query.uid, targetSchool: values.targetSchool.join(','), pet: values.pet.join(','), contactStyle: values.contactStyle.join(','), studentCard: studentCardUrl, images: imageUrlList}),
           })
           if (res.statusText == "OK") {
             updateSuccess();
           } else {
             error();
-          }
+          } 
           setUpdating(false);
         }
         // 응답 처리
