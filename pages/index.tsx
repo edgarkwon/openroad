@@ -77,7 +77,6 @@ export default function Home() {
   };
 
   const onUpload: UploadProps['onChange'] = ({ fileList: newFileList }) => {
-    console
     setFileList(newFileList);
   };
 
@@ -240,7 +239,6 @@ export default function Home() {
   };
   
 
-
   useEffect(()=> {
     const onCheckProfile = async() => {
       if(router.query.uid){
@@ -287,7 +285,7 @@ export default function Home() {
               priority
             />
         </div>
-        {logo === errorLogo && <p>잘못된 경로입니다.</p>}
+        {logo === errorLogo && <p>v2 잘못된 경로입니다.</p>}
       {!loading &&
         <Form className={styles.form} form={form} validateMessages={validateMessages}>
           {token !== "" ? 
@@ -304,7 +302,7 @@ export default function Home() {
                 defaultFileList={item?.images ? fileList : []}
                 onChange={onUpload}
                 onPreview={handlePreview}
-                method="PUT"
+                beforeUpload={()=> (fileList.length <= 3)}
                 > 
                   {(fileList.length < 3) && <span style={{color: "white"}}> + 프로필 사진 <br/>(최대 3개)</span>}
                 </Upload>
@@ -317,7 +315,7 @@ export default function Home() {
                 validator: validateStudentCard,
                 message: "학생증 사진을 등록해주세요.",
               }]}>
-              <Dragger method="PUT" listType='picture' accept="image/*" maxCount={1} defaultFileList={item?.studentCard ? [{uid: "0", name: "studentCard", url: item.studentCard, status: "done"}] : []} beforeUpload={(file: UploadFile) => {setStudentCard(file);}}>
+              <Dragger listType='picture' accept="image/*" maxCount={1} defaultFileList={item?.studentCard ? [{uid: "0", name: "studentCard", url: item.studentCard, status: "done"}] : []} beforeUpload={(file: UploadFile) => {setStudentCard(file); return true;}}>
                 <p className="ant-upload-drag-icon">
                   <InboxOutlined />
                 </p>
