@@ -120,5 +120,8 @@ a {
 
 .ant-upload-wrapper .ant-upload-list.ant-upload-list-picture .ant-upload-list-item{
   border: 1px solid white;
+}
+
+.ant-upload-wrapper .ant-upload-list .ant-upload-list-item-error .ant-upload-list-item-name {
   color: white;
 }
