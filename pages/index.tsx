@@ -254,7 +254,7 @@ export default function Home() {
           setIsCreate(false);
           setItem(fetchedItem);
           form.setFieldsValue({...fetchedItem, contactStyle: fetchedItem?.contactStyle ? fetchedItem?.contactStyle.split(",") : [], drink: fetchedItem?.drink ? fetchedItem?.drink : [], relation: fetchedItem?.relation ? fetchedItem?.relation : [], smoke: fetchedItem?.smoke ? fetchedItem?.smoke : [],  education: fetchedItem?.education ? fetchedItem?.education : [], targetSchool: fetchedItem?.targetSchool ? fetchedItem?.targetSchool.split(",") : [], pet: fetchedItem?.pet ? fetchedItem?.pet.split(",") : []});
-          setFileList(fetchedItem.images.map((url: any, index: any) => {return {uid: index+1, url: url, name: "name"}}));
+          setFileList(fetchedItem.images.map((url: any, index: any) => {return {uid: index+1, url: url, name: "name", status: "done"}}));
         }
         else {
           setIsCreate(true);
@@ -317,7 +317,7 @@ export default function Home() {
                 validator: validateStudentCard,
                 message: "학생증 사진을 등록해주세요.",
               }]}>
-              <Dragger method="PUT" listType='picture' accept="image/*" maxCount={1} defaultFileList={item?.studentCard ? [{uid: "0", name: "studentCard", url: item.studentCard}] : []} beforeUpload={(file: UploadFile) => {setStudentCard(file);}}>
+              <Dragger method="PUT" listType='picture' accept="image/*" maxCount={1} defaultFileList={item?.studentCard ? [{uid: "0", name: "studentCard", url: item.studentCard, status: "done"}] : []} beforeUpload={(file: UploadFile) => {setStudentCard(file);}}>
                 <p className="ant-upload-drag-icon">
                   <InboxOutlined />
                 </p>
