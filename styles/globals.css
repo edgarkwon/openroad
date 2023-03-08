@@ -125,3 +125,7 @@ a {
 .ant-upload-wrapper .ant-upload-list .ant-upload-list-item-error .ant-upload-list-item-name {
   color: white;
 }
+
+.ant-btn.ant-btn-sm {
+  font-size: 11px;
+}

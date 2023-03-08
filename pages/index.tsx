@@ -1,7 +1,7 @@
 import styles from '../styles/Home.module.css'
 import React, { useCallback, useEffect, useState } from 'react'
 import Image from 'next/image'
-import { Button, Form, Input, InputNumber, Modal, Select, Upload, message, TreeSelect } from 'antd';
+import { Button, Form, Input, InputNumber, Modal, Select, Upload, message, TreeSelect, Typography, Popconfirm, Checkbox, Space } from 'antd';
 import type { RcFile, UploadProps } from 'antd/es/upload';
 import type { UploadFile } from 'antd/es/upload/interface';
 const { Dragger } = Upload;
@@ -31,6 +31,7 @@ export default function Home() {
   const [updating, setUpdating] = useState(false);
   const [treeValue, setTreeValue] = useState(['0-0-0']);
   const [school, setSchool] = useState<string>();
+  const [modalOpen, setModalOpen] = useState(false);
 
   
 
@@ -144,6 +145,7 @@ export default function Home() {
         var res;
         if (imageList.length >= 10){
           imagesError();
+          setLoading(false);
         }
         else if (isCreate){
           console.log("creating")
@@ -214,6 +216,17 @@ export default function Home() {
     setSchool(newValue);
   };
 
+  const deleteConfirm = async (e: React.MouseEvent<HTMLElement>) => {
+    const res = await fetch(`https://${process.env.NEXT_PUBLIC_PROFILE_DELETE_API}.lambda-url.ap-northeast-2.on.aws/?uid=${router.query.uid}`);
+    message.success('회원 정보가 삭제되었습니다. 그동안 사용해주셔서 감사합니다.');
+    form.resetFields();
+    setIsCreate(true);
+  };
+  
+  const deleteCancel = (e: React.MouseEvent<HTMLElement>) => {
+    console.log(e);
+  };
+
   const targetSchoolProps = {
     treeData: schoolsData,
     value: treeValue,
@@ -238,7 +251,6 @@ export default function Home() {
     showSearch: true,
     allowClear: true
   };
-  
 
   useEffect(()=> {
     const onCheckProfile = async() => {
@@ -271,188 +283,227 @@ export default function Home() {
     console.log("fileList", fileList);
   } , [router, form])
 
-  useEffect(()=>{console.log("fileList changed", fileList)}, [fileList])
+  useEffect(()=>{if(isCreate){console.log("isCreate", isCreate); setModalOpen(true)}}, [isCreate])
+
+
   return (
-    <>
+    <div style={{marginBottom: "100px"}}>
       {contextHolder}
       <div className = {styles.container}>
-      <main className={styles.main}>
-        <div className={styles.thirteen}>
-            <Image
-              src={logo}
-              alt="13"
-              width={60}
-              height={46}
-              priority
-            />
-        </div>
-        {logo === errorLogo && <p>잘못된 경로입니다.</p>}
-      {!loading &&
-        <Form className={styles.form} form={form} validateMessages={validateMessages}>
-          {token !== "" ? 
-          <>
-            <div style={{marginTop: "15px", marginLeft: "8px"}}>
-              <Form.Item name="images" rules={[{
-                validator: validateImages,
-                message: "최소 한 장 이상의 사진을 등록해주세요.",
-              }]}>
-                <Upload
-                accept="image/*"
-                style={{width: "100%"}}
-                listType="picture-card"
-                defaultFileList={item?.images ? fileList : []}
-                onChange={onUpload}
-                onPreview={handlePreview}
-                > 
-                  {(fileList.length <= 8) && <span style={{color: "white"}}> + 프로필 사진 <br/>(최대 9개)</span>}
-                </Upload>
+        <main className={styles.main}>
+          <div className={styles.thirteen}>
+              <Image
+                src={logo}
+                alt="13"
+                width={60}
+                height={46}
+                priority
+              />
+          </div>
+          {logo === errorLogo && <p>잘못된 경로입니다.</p>}
+        {!loading &&
+        <>
+          <Form className={styles.form} form={form} validateMessages={validateMessages}>
+            {token !== "" ? 
+            <>
+              <div style={{marginTop: "15px", marginLeft: "8px"}}>
+                <Form.Item name="images" rules={[{
+                  validator: validateImages,
+                  message: "최소 한 장 이상의 사진을 등록해주세요.",
+                }]}>
+                  <Upload
+                  accept="image/*"
+                  style={{width: "100%"}}
+                  listType="picture-card"
+                  defaultFileList={item?.images ? fileList : []}
+                  onChange={onUpload}
+                  onPreview={handlePreview}
+                  > 
+                    {(fileList.length <= 8) && <span style={{color: "white"}}> + 프로필 사진 <br/>(최대 9개)</span>}
+                  </Upload>
+                </Form.Item>
+                <Modal open={previewOpen} footer={null} onCancel={handleCancel}>
+                  <img alt="preview" style={{ width: '100%' }} src={previewImage} />
+                </Modal>
+              </div>
+              <Form.Item style={{width: "90%", marginBottom: "15px"}} name="studentCard" rules={[{
+                  validator: validateStudentCard,
+                  message: "학생증 사진을 등록해주세요.",
+                }]}>
+                <Dragger listType='picture' accept="image/*" maxCount={1} defaultFileList={item?.studentCard ? [{uid: "0", name: "studentCard", url: item.studentCard, status: "done"}] : []} beforeUpload={(file: UploadFile) => {setStudentCard(file); return true;}}>
+                  <p className="ant-upload-drag-icon">
+                    <InboxOutlined />
+                  </p>
+                  <p className="ant-upload-text" style={{color: "white"}}>학생증 업로드</p>
+                  <p className="ant-upload-hint" style={{color: "white", marginLeft: "5px", marginRight: "5px"}}>
+                    학생 신원 확인 용도로만 활용됩니다. 타인의 학생증 등 부적합한 파일 업로드 시 영구 차단될 수 있습니다.
+                  </p>
+                </Dragger>
               </Form.Item>
-              <Modal open={previewOpen} footer={null} onCancel={handleCancel}>
-                <img alt="preview" style={{ width: '100%' }} src={previewImage} />
-              </Modal>
-            </div>
-            <Form.Item style={{width: "90%", marginBottom: "15px"}} name="studentCard" rules={[{
-                validator: validateStudentCard,
-                message: "학생증 사진을 등록해주세요.",
-              }]}>
-              <Dragger listType='picture' accept="image/*" maxCount={1} defaultFileList={item?.studentCard ? [{uid: "0", name: "studentCard", url: item.studentCard, status: "done"}] : []} beforeUpload={(file: UploadFile) => {setStudentCard(file); return true;}}>
-                <p className="ant-upload-drag-icon">
-                  <InboxOutlined />
-                </p>
-                <p className="ant-upload-text" style={{color: "white"}}>학생증 업로드</p>
-                <p className="ant-upload-hint" style={{color: "white", marginLeft: "5px", marginRight: "5px"}}>
-                  학생 신원 확인 용도로만 활용됩니다. 타인의 학생증 등 부적합한 파일 업로드 시 영구 차단될 수 있습니다.
-                </p>
-              </Dragger>
-            </Form.Item>
-            <Form.Item style={{width: "90%", marginBottom: "5px", marginTop: "25px"}} name="school" rules={[{ required: true }]}>
-              <TreeSelect {...mySchoolProps} />
-            </Form.Item>
-            <Form.Item style={{width: "90%", marginBottom: "5px"}} name="targetSchool" rules={[{ required: true }]}>
-              <TreeSelect {...targetSchoolProps} />
-            </Form.Item>
-            <Form.Item style={{width: "90%", marginBottom: "5px"}} name="sex" rules={[{ required: true }]}>
-              <Select
-                placeholder = "성별 *"
-                style={{ width: "100%" }}
-                onChange={handleSelectChange}
-                options={[
-                  { value: '남자', label: '남자' },
-                  { value: '여자', label: '여자' },
-                ]}
-              />
-            </Form.Item>
-            <Form.Item style={{width: "90%", marginBottom: "5px"}} name="nickname" rules={[{ required: true }]}>
-              <Input style = {{width: "100%"}} placeholder="닉네임 *"/>
-            </Form.Item>
-            <Form.Item style={{width: "90%", marginBottom: "5px"}} name="kakaoId" rules={[{ required: true }]}>
-              <Input style = {{width: "100%"}} placeholder="카카오 ID *"/>
-            </Form.Item>
-            <Form.Item style={{width: "90%", marginBottom: "5px"}} name="age" rules={[{ required: true }]}>
-              <InputNumber min={19} max={100} placeholder="나이 *" style = {{width: "100%"}}/>
-            </Form.Item>
-            <Form.Item style={{width: "90%", marginBottom: "5px"}} name="education">
-              <Select allowClear
-                placeholder = "학력"
-                style={{ width: "100%"}}
-                onChange={handleSelectChange}
-                options={[
-                  { value: '학부 재학중', label: '학부 재학중' },
-                  { value: '석사 재학중', label: '석사 재학중' },
-                  { value: '박사 재학중', label: '박사 재학중' },
-                  { value: '휴학', label: '휴학' },
-                  { value: '교수', label: '교수' },
-                ]}
-              />
-            </Form.Item>
-            <Form.Item style={{width: "90%", marginBottom: "5px"}} name="mbti">
-              <Input style = {{width: "100%"}} placeholder="MBTI"/>
-            </Form.Item>
-            <Form.Item style={{width: "90%", marginBottom: "5px"}} name="height">
-              <InputNumber min={100} max={250} placeholder="키" style = {{width: "100%"}}/>
-            </Form.Item>
-            <Form.Item style={{width: "90%", marginBottom: "5px"}} name="smoke">
-              <Select allowClear
-                placeholder = "흡연량"
-                style={{ width: "100" }}
-                onChange={handleSelectChange}
-                options={[
-                  { value: '다른 흡연자가 있을 때만', label: '다른 흡연자가 있을 때만' },
-                  { value: '술 마실 때만', label: '술 마실 때만' },
-                  { value: '비흡연', label: '비흡연' },
-                  { value: '흡연', label: '흡연' },
-                  { value: '금연 중', label: '금연 중' }
-                ]}
-              />
-            </Form.Item>
-            <Form.Item style={{width: "90%", marginBottom: "5px"}} name="drink">
-              <Select allowClear
-                placeholder = "음주"
-                style={{ width: "100%" }}
-                onChange={handleSelectChange}
-                options={[
-                  { value: '아예 안 마심', label: '아예 안 마심' },
-                  { value: '가끔 마심', label: '가끔 마심' },
-                  { value: '자주 마심', label: '자주 마심' },
-                  { value: '매일 마심', label: '매일 마심' },
-                  { value: '혼술할 정도로 좋아하는 편', label: '혼술할 정도로 좋아하는 편' },
-                  { value: '친구들 만날 때만 마시는 편', label: '친구들 만날 때만 마시는 편' },
-                  { value: '현재 금주 중', label: '현재 금주 중' }
-                ]}
-              />
-            </Form.Item>
-            <Form.Item style={{width: "90%", marginBottom: "5px"}} name="relation">
-              <Select allowClear
-                placeholder = "내가 찾는 관계"
-                style={{ width: "100%" }}
-                onChange={handleSelectChange}
-                options={[
-                  { value: '진지한 연애', label: '진지한 연애' },
-                  { value: '진지한 연애를 찾지만 캐주얼해도 괜찮음', label: '진지한 연애를 찾지만 캐주얼해도 괜찮음' },
-                  { value: '캐주얼한 연애를 찾지만 진지해도 괜찮음', label: '캐주얼한 연애를 찾지만 진지해도 괜찮음' },
-                  { value: '캐주얼하게 만날 친구', label: '캐주얼하게 만날 친구' },
-                  { value: '새로운 동네 친구', label: '새로운 동네 친구' },
-                  { value: '아직 모르겠음', label: '아직 모르겠음' },
-                ]}
-              />
-            </Form.Item>
-            <Form.Item style={{width: "90%", marginBottom: "5px"}} name="contactStyle">
-              <Select
-                mode="multiple"
-                allowClear
-                style={{ width: '100%' }}
-                placeholder="연락 스타일"
-                onChange={handleSelectChange}
-                options={[{ value: '카톡 자주 하는 편', label: '카톡 자주 하는 편' },
-                { value: '전화 선호함', label: '전화 선호함' },
-                { value: '영상통화 선호함', label: '영상통화 선호함' },
-                { value: '카톡 별로 안 하는 편', label: '카톡 별로 안 하는 편' },
-                { value: '직접 만나는 걸 선호함', label: '직접 만나는 걸 선호함' },]}
-              />
-            </Form.Item>
-            <Form.Item style={{width: "90%", marginBottom: "5px"}} name="pet">
-              <Select
-                mode="multiple"
-                allowClear
-                style={{ width: '100%' }}
-                placeholder="반려 동물"
-                onChange={handleSelectChange}
-                options={[{ value: '강아지', label: '강아지' },
-                { value: '고양이', label: '고양이' },
-                { value: '물고기', label: '물고기' },
-                { value: '조류', label: '조류' },
-                { value: '키우고 싶음', label: '키우고 싶음' },
-                { value: '키움 당하고 싶음', label: '키움 당하고 싶음' },]}
-              />
-            </Form.Item>
-            <Form.Item style={{width: "90%", marginBottom: "40px"}} name="pr">
-              <Input style = {{width: "100%"}} placeholder="한 줄 소개"/>
-            </Form.Item>
-            <Button type = "primary" htmlType="submit" style = {{width: "90%", marginBottom: "100px"}} onClick={onFinish}>{updating ? "로딩중..." : (isCreate ? "프로필 생성하기" : "프로필 수정하기")}</Button></>
-          : <></>}
-        </Form>}
-      </main>
+              <Form.Item style={{width: "90%", marginBottom: "5px", marginTop: "25px"}} name="school" rules={[{ required: true }]}>
+                <TreeSelect {...mySchoolProps} />
+              </Form.Item>
+              <Form.Item style={{width: "90%", marginBottom: "5px"}} name="targetSchool" rules={[{ required: true }]}>
+                <TreeSelect {...targetSchoolProps} />
+              </Form.Item>
+              <Form.Item style={{width: "90%", marginBottom: "5px"}} name="sex" rules={[{ required: true }]}>
+                <Select
+                  placeholder = "성별 *"
+                  style={{ width: "100%" }}
+                  onChange={handleSelectChange}
+                  options={[
+                    { value: '남자', label: '남자' },
+                    { value: '여자', label: '여자' },
+                  ]}
+                />
+              </Form.Item>
+              <Form.Item style={{width: "90%", marginBottom: "5px"}} name="nickname" rules={[{ required: true }]}>
+                <Input style = {{width: "100%"}} placeholder="닉네임 *"/>
+              </Form.Item>
+              <Form.Item style={{width: "90%", marginBottom: "5px"}} name="kakaoId" rules={[{ required: true }]}>
+                <Input style = {{width: "100%"}} placeholder="카카오 ID *"/>
+              </Form.Item>
+              <Form.Item style={{width: "90%", marginBottom: "5px"}} name="age" rules={[{ required: true }]}>
+                <InputNumber min={19} max={100} placeholder="나이 *" style = {{width: "100%"}}/>
+              </Form.Item>
+              <Form.Item style={{width: "90%", marginBottom: "5px"}} name="education">
+                <Select allowClear
+                  placeholder = "학력"
+                  style={{ width: "100%"}}
+                  onChange={handleSelectChange}
+                  options={[
+                    { value: '학부 재학중', label: '학부 재학중' },
+                    { value: '석사 재학중', label: '석사 재학중' },
+                    { value: '박사 재학중', label: '박사 재학중' },
+                    { value: '휴학', label: '휴학' },
+                    { value: '교수', label: '교수' },
+                  ]}
+                />
+              </Form.Item>
+              <Form.Item style={{width: "90%", marginBottom: "5px"}} name="mbti">
+                <Input style = {{width: "100%"}} placeholder="MBTI"/>
+              </Form.Item>
+              <Form.Item style={{width: "90%", marginBottom: "5px"}} name="height">
+                <InputNumber min={100} max={250} placeholder="키" style = {{width: "100%"}}/>
+              </Form.Item>
+              <Form.Item style={{width: "90%", marginBottom: "5px"}} name="smoke">
+                <Select allowClear
+                  placeholder = "흡연량"
+                  style={{ width: "100" }}
+                  onChange={handleSelectChange}
+                  options={[
+                    { value: '다른 흡연자가 있을 때만', label: '다른 흡연자가 있을 때만' },
+                    { value: '술 마실 때만', label: '술 마실 때만' },
+                    { value: '비흡연', label: '비흡연' },
+                    { value: '흡연', label: '흡연' },
+                    { value: '금연 중', label: '금연 중' }
+                  ]}
+                />
+              </Form.Item>
+              <Form.Item style={{width: "90%", marginBottom: "5px"}} name="drink">
+                <Select allowClear
+                  placeholder = "음주"
+                  style={{ width: "100%" }}
+                  onChange={handleSelectChange}
+                  options={[
+                    { value: '아예 안 마심', label: '아예 안 마심' },
+                    { value: '가끔 마심', label: '가끔 마심' },
+                    { value: '자주 마심', label: '자주 마심' },
+                    { value: '매일 마심', label: '매일 마심' },
+                    { value: '혼술할 정도로 좋아하는 편', label: '혼술할 정도로 좋아하는 편' },
+                    { value: '친구들 만날 때만 마시는 편', label: '친구들 만날 때만 마시는 편' },
+                    { value: '현재 금주 중', label: '현재 금주 중' }
+                  ]}
+                />
+              </Form.Item>
+              <Form.Item style={{width: "90%", marginBottom: "5px"}} name="relation">
+                <Select allowClear
+                  placeholder = "내가 찾는 관계"
+                  style={{ width: "100%" }}
+                  onChange={handleSelectChange}
+                  options={[
+                    { value: '진지한 연애', label: '진지한 연애' },
+                    { value: '진지한 연애를 찾지만 캐주얼해도 괜찮음', label: '진지한 연애를 찾지만 캐주얼해도 괜찮음' },
+                    { value: '캐주얼한 연애를 찾지만 진지해도 괜찮음', label: '캐주얼한 연애를 찾지만 진지해도 괜찮음' },
+                    { value: '캐주얼하게 만날 친구', label: '캐주얼하게 만날 친구' },
+                    { value: '새로운 동네 친구', label: '새로운 동네 친구' },
+                    { value: '아직 모르겠음', label: '아직 모르겠음' },
+                  ]}
+                />
+              </Form.Item>
+              <Form.Item style={{width: "90%", marginBottom: "5px"}} name="contactStyle">
+                <Select
+                  mode="multiple"
+                  allowClear
+                  style={{ width: '100%' }}
+                  placeholder="연락 스타일"
+                  onChange={handleSelectChange}
+                  options={[{ value: '카톡 자주 하는 편', label: '카톡 자주 하는 편' },
+                  { value: '전화 선호함', label: '전화 선호함' },
+                  { value: '영상통화 선호함', label: '영상통화 선호함' },
+                  { value: '카톡 별로 안 하는 편', label: '카톡 별로 안 하는 편' },
+                  { value: '직접 만나는 걸 선호함', label: '직접 만나는 걸 선호함' },]}
+                />
+              </Form.Item>
+              <Form.Item style={{width: "90%", marginBottom: "5px"}} name="pet">
+                <Select
+                  mode="multiple"
+                  allowClear
+                  style={{ width: '100%' }}
+                  placeholder="반려 동물"
+                  onChange={handleSelectChange}
+                  options={[{ value: '강아지', label: '강아지' },
+                  { value: '고양이', label: '고양이' },
+                  { value: '물고기', label: '물고기' },
+                  { value: '조류', label: '조류' },
+                  { value: '키우고 싶음', label: '키우고 싶음' },
+                  { value: '키움 당하고 싶음', label: '키움 당하고 싶음' },]}
+                />
+              </Form.Item>
+              <Form.Item style={{width: "90%", marginBottom: "40px"}} name="pr">
+                <Input style = {{width: "100%"}} placeholder="한 줄 소개"/>
+              </Form.Item>
+              <Button type = "primary" htmlType="submit" style = {{width: "90%", marginBottom: "10px"}} onClick={onFinish}>{updating ? "로딩중..." : (isCreate ? "프로필 생성하기" : "프로필 수정하기")}</Button></>
+            : <></>}
+          </Form>
+            {!isCreate && 
+            <Popconfirm
+              title="회원 탈퇴"
+              description="정보를 복원할 수 없고, 모든 혜택을 포기하게 됩니다."
+              onConfirm={deleteConfirm}
+              onCancel={deleteCancel}
+              okText="탈퇴하기"
+              cancelText="취소"
+            >
+              <Button type="link">대학로를 그만 사용하고 싶으신가요..? 😥 (탈퇴하기)</Button>
+            </Popconfirm>
+            }
+            {isCreate && <Modal
+              title="회원가입에 앞서, 개인정보 수집 이용 동의를 부탁드려요."
+              centered
+              open={modalOpen}
+              onOk={() => setModalOpen(false)}
+              onCancel={() => setModalOpen(false)}
+            >
+              <Space direction="vertical">
+                <div>
+                  <Checkbox>(필수) 서비스 이용약관 동의</Checkbox>
+                  <Typography.Link href="https://google.com" target="_blank">약관 보기</Typography.Link>
+                </div>
+                <div>
+                  <Checkbox>(필수) 개인정보 수집 및 이용 동의</Checkbox>
+                  <Typography.Link href="https://google.com" target="_blank">동의서 보기</Typography.Link>
+                </div>
+                <div>
+                  <Checkbox>(선택) 마케팅 ・ 광고성 정보 수신 동의</Checkbox>
+                  <Typography.Link href="https://google.com" target="_blank">동의서 보기</Typography.Link>
+                </div>
+              </Space>
+            </Modal>}
+        </>
+        }
+        </main>
       </div>
-    </>
+    </div>
   )
 }
